@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { OctagonAlertIcon } from "lucide-react";
+import {FaGithub, FaGoogle} from "react-icons/fa";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
@@ -59,6 +60,25 @@ export const SignInView = () => {
         );
     };
 
+    const onSocial = (provider: "google" | "github") => {
+        setError(null);
+        setPending(true);
+        authClient.signIn.social({
+            provider: provider,
+        },
+        {
+            onSuccess: () => {
+                setPending(false);
+                router.push("/");
+            },
+            onError: (error) => {
+                setError(error.error.message);
+                setPending(false);
+            },
+        }
+    );
+    };
+
     if (!mounted) {
         return (
             <div className="flex flex-col gap-6">
@@ -81,6 +101,12 @@ export const SignInView = () => {
                                     </div>
                                 </div>
                                 <Button disabled>Sign In</Button>
+                                <p className="text-center text-sm text-muted-foreground">
+                                    Don't have an account?{" "}
+                                    <span className="font-medium text-primary underline underline-offset-4 cursor-pointer">
+                                        Sign up
+                                    </span>
+                                </p>
                             </div>
                         </div>
                         <div className="relative hidden md:flex flex-col items-center justify-center gap-y-4 bg-gradient-to-br from-green-700 to-green-900 h-full">
@@ -144,17 +170,38 @@ export const SignInView = () => {
                                     </Alert>
                                 )}
                                 <div className="grid grid-cols-2 gap-4">
-                                    <Button variant="outline" type="button" className="w-full">
-                                        Google
+                                    <Button
+                                        disabled={pending}
+                                        onClick={() => onSocial("google")}
+                                        variant="outline"
+                                        type="button"
+                                        className="w-full">
+                                        <FaGoogle />
                                     </Button>
-                                    <Button variant="outline" type="button" className="w-full">
-                                        Github
+                                    <Button
+                                        disabled={pending}
+                                        onClick={() => onSocial("github")}
+                                        variant="outline"
+                                        type="button"
+                                        className="w-full">
+                                        <FaGithub />
                                     </Button>
                                 </div>
 
                                 <Button disabled={pending} type="submit">
                                     Sign In
                                 </Button>
+                                
+                                <p className="text-center text-sm text-muted-foreground">
+                                    Don't have an account?{" "}
+                                    <button
+                                        type="button"
+                                        onClick={() => router.push("/sign-up")}
+                                        className="font-medium text-primary underline underline-offset-4 hover:text-primary/80"
+                                    >
+                                        Sign up
+                                    </button>
+                                </p>
                             </div>
                         </form>
                     </Form>
