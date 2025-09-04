@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { OctagonAlertIcon } from "lucide-react";
-import {FaGithub, FaGoogle} from "react-icons/fa";
+import { FaGithub, FaGoogle } from "react-icons/fa";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
@@ -236,10 +236,16 @@ export const SignUpView = () => {
               </div>
             </form>
           </Form>
-          <div className="relative hidden md:flex flex-col items-center justify-center gap-y-4 bg-gradient-to-br from-green-700 to-green-900 h-full">
-            <img src="/logo.svg" alt="Logo" className="h-[92px] w-[92px]" />
+          <div className="relative hidden md:flex flex-col items-center justify-center gap-y-4 
+  bg-gradient-to-br from-gray-900 to-gray-800 h-full">
+
+            {/* Black Logo */}
+            <img src="/logo-white.svg" alt="Logo" className="h-[92px] w-[92px]" />
+
+            {/* White Brand Name */}
             <p className="text-2xl font-semibold text-white">Meet.Ai</p>
           </div>
+
         </CardContent>
       </Card>
       <div className="text-muted-foreground text-center text-xs text-balance">
