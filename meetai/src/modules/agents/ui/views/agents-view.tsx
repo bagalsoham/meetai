@@ -6,10 +6,15 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { columns, Payment } from "../components/columns";
 import { DataTable } from "../components/data-table";
 import EmptyState from "@/components/empty-state";
+import { useAgentsFilter } from "@/app/(dashboard)/agents/hooks/use-agents-flters";
 
 export const AgentsView = () => {
+  const [filters] =useAgentsFilter();
+
   const trpc = useTRPC();
-  const { data } = useSuspenseQuery(trpc.agents.getMany.queryOptions());
+  const { data } = useSuspenseQuery(trpc.agents.getMany.queryOptions({
+    ...filters
+  }));
   const mockData: Payment[] =[
     {
       id: "728ed52f",
@@ -21,9 +26,9 @@ export const AgentsView = () => {
   ]
   return (
     <div className="flex-1 pb-4 px-4 md:px-8 flex flex-col gap-y-4">
-      <DataTable data={data} columns={columns} />
+      <DataTable data={data.items} columns={columns} />
       {
-        data.length ===0 &&(
+        data.items.length ===0 &&(
           <EmptyState
             title="Create your first agent"
             description =" Create an agent to join a meetings"
