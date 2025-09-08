@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { agents } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
-import { agentsInsertSchema } from "../schema";
+import { agentsInsertSchema, agentsUpdateSchema } from "../schema";
 import z from "zod";
 import {
   and,
@@ -21,6 +21,45 @@ import {
 } from "@/constants";
 
 export const agentsRouter = createTRPCRouter({
+  update: protectedProcedure
+    .input(agentsUpdateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [updatedAgents] = await db
+        .update(agents)
+        .set(input)
+        .where(
+          and(eq(agents.id, input.id), eq(agents.userId, ctx.auth.user.id))
+        )
+        .returning();
+
+      if (!updatedAgents) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Agent not found",
+        });
+      }
+
+      return updatedAgents;
+    }),
+
+  remove: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [removedAgent] = await db
+        .delete(agents)
+        .where(and(eq(agents.id, input.id), eq(agents.userId, ctx.auth.user.id)))
+        .returning();
+
+      if (!removedAgent) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Agent not found",
+        });
+      }
+
+      return removedAgent;
+    }),
+
   getMany: protectedProcedure
     .input(
       z.object({
@@ -84,7 +123,7 @@ export const agentsRouter = createTRPCRouter({
 
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ input , ctx}) => {
+    .query(async ({ input, ctx }) => {
       try {
         const [existingAgent] = await db
           .select({
@@ -92,13 +131,15 @@ export const agentsRouter = createTRPCRouter({
             ...getTableColumns(agents),
           })
           .from(agents)
-          .where(and
-            (eq(agents.id, input.id),
-            (eq(agents.userId,ctx.auth.user.id))
-            )
+          .where(
+            and(eq(agents.id, input.id), eq(agents.userId, ctx.auth.user.id))
           );
-        if(!existingAgent){
-          throw new TRPCError({code:"NOT_FOUND", message:"Agent no found"})
+
+        if (!existingAgent) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Agent not found",
+          });
         }
 
         return existingAgent;

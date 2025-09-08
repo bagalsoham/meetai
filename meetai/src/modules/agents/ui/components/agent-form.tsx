@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { agentsInsertSchema } from "../../schema";
+import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -36,18 +37,34 @@ export const AgentForm = ({
 
     const createAgent = useMutation(
         trpc.agents.create.mutationOptions({
-            onSuccess:async () => { 
+            onSuccess: async () => {
                 await queryClient.invalidateQueries(
                     trpc.agents.getMany.queryOptions({}),
                 )
-                if(initialValues?.id){
+                //todo invalidate free tier usage
+                onSuccess?.();
+            },
+            onError: (error) => {
+                toast.error(error.message);
+            },
+        })
+    );
+    const updateAgent = useMutation(
+        trpc.agents.update.mutationOptions({
+            onSuccess: async () => {
+                await queryClient.invalidateQueries(
+                    trpc.agents.getMany.queryOptions({}),
+                )
+                if (initialValues?.id) {
                     await queryClient.invalidateQueries(
-                        trpc.agents.getOne.queryOptions({id:initialValues.id}),
+                        trpc.agents.getOne.queryOptions({ id: initialValues.id }),
                     )
                 }
                 onSuccess?.();
             },
-            onError: () => { },
+            onError: (error) => {
+                toast.error(error.message);
+            },
         })
     );
 
@@ -59,11 +76,11 @@ export const AgentForm = ({
         },
     });
     const isEdit = !!initialValues?.id;
-    const isPending = createAgent.isPending;
+    const isPending = createAgent.isPending || updateAgent.isPending;
 
     const onSubmit = (values: z.infer<typeof agentsInsertSchema>) => {
         if (isEdit) {
-            console.log("updateAgent");
+            updateAgent.mutate({...values , id:initialValues.id})
         }
         else {
             createAgent.mutate(values);
@@ -115,8 +132,8 @@ export const AgentForm = ({
                             Cancel
                         </Button>
                     )}
-                    <Button disabled ={isPending} type="submit">
-                        {isEdit ? "Update": "Submit"}
+                    <Button disabled={isPending} type="submit">
+                        {isEdit ? "Update" : "Submit"}
                     </Button>
                 </div>
 
