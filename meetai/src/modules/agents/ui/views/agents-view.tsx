@@ -4,7 +4,7 @@ import { LoadingState } from "@/components/loading-state";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { columns, Payment } from "../components/columns";
-import { DataTable } from "../components/data-table";
+import { DataTable } from "@/components/data-table";
 import EmptyState from "@/components/empty-state";
 import { useAgentsFilter } from "@/app/(dashboard)/agents/hooks/use-agents-flters";
 import { DataPagination } from "../components/data-pagination";

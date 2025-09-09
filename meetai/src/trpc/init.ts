@@ -4,10 +4,15 @@ import { headers } from 'next/headers';
 import { cache } from 'react';
 
 export const createTRPCContext = cache(async () => {
-  /**
-   * @see: https://trpc.io/docs/server/context
-   */
-  return { userId: 'user_123' };
+  // Get the actual session instead of hardcoded user
+  const session = await auth.api.getSession({ 
+    headers: await headers() 
+  });
+
+  return { 
+    session,
+    userId: session?.user?.id || null 
+  };
 });
 
 // Avoid exporting the entire t-object
@@ -24,7 +29,10 @@ export const createCallerFactory = t.createCallerFactory;
 export const baseProcedure = t.procedure;
 
 export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
-  const session = await auth.api.getSession({ headers: await headers() });
+  // Get session fresh in the middleware since ctx might not have it
+  const session = await auth.api.getSession({ 
+    headers: await headers() 
+  });
 
   if (!session) {
     throw new TRPCError({
@@ -34,6 +42,10 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
   }
 
   return next({
-    ctx: { ...ctx, auth: session },
+    ctx: { 
+      ...ctx, 
+      auth: session,
+      user: session.user 
+    },
   });
 });

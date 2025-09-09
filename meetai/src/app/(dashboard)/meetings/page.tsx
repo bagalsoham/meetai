@@ -1,8 +1,6 @@
 import { auth } from "@/lib/auth";
 import { MeetingsListHeader } from "@/modules/meetings/ui/components/meetings-list-header";
 import { MeetingsView, MeetingsViewError, MeetingsViewLoading } from "@/modules/meetings/ui/views/meetings-view";
-import { getQueryClient, trpc } from "@/trpc/sever";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { Suspense } from "react";
@@ -17,23 +15,14 @@ const Page = async () => {
     redirect("/sign-in");
   }
 
-  const queryClient = getQueryClient();
-
-  // ✅ Correct for normal query
-  await queryClient.prefetchQuery(
-    trpc.meetings.getMany.queryOptions({})
-  );
-
   return (
     <>
       <MeetingsListHeader />
-      <HydrationBoundary state={dehydrate(queryClient)}>
+      <ErrorBoundary fallback={<MeetingsViewError />}>
         <Suspense fallback={<MeetingsViewLoading />}>
-          <ErrorBoundary fallback={<MeetingsViewError />}>
-            <MeetingsView />
-          </ErrorBoundary>
+          <MeetingsView />
         </Suspense>
-      </HydrationBoundary>
+      </ErrorBoundary>
     </>
   );
 };

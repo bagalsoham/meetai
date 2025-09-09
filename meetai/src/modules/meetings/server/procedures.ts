@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import {  meetings } from "@/db/schema";
+import { meetings, agents } from "@/db/schema"; // ⬅️ import agents
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 
@@ -23,108 +23,112 @@ import { meetingsInsertSchema, meetingsUpdateSchema } from "../schema";
 
 export const meetingsRouter = createTRPCRouter({
   update: protectedProcedure
-      .input(meetingsUpdateSchema)
-      .mutation(async ({ ctx, input }) => {
-        const [updatedMeeting] = await db
-          .update(meetings)
-          .set(input)
-          .where(
-            and(eq(meetings.id, input.id), eq(meetings.userId, ctx.auth.user.id))
-          )
-          .returning();
-  
-        if (!updatedMeeting) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Agent not found",
-          });
-        }
-  
-        return updatedMeeting;
-      }),
-  
+    .input(meetingsUpdateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [updatedMeeting] = await db
+        .update(meetings)
+        .set(input)
+        .where(
+          and(eq(meetings.id, input.id), eq(meetings.userId, ctx.auth.user.id))
+        )
+        .returning();
+
+      if (!updatedMeeting) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Agent not found",
+        });
+      }
+
+      return updatedMeeting;
+    }),
+
   create: protectedProcedure
-      .input(meetingsInsertSchema)
-      .mutation(async ({ input, ctx }) => {
-        try {
-          const [createdMeeting] = await db
-            .insert(meetings)
-            .values({
-              ...input,
-              userId: ctx.auth.user.id,
-            })
-            .returning();
-            
-  
-          return createdMeeting;
-        } catch (err) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to create agent",
-            cause: err,
-          });
-        }
-      }),
-  getMany: protectedProcedure
-    .input(
-      z.object({
-        page: z.number().default(DEFAULT_PAGE),
-        pageSize: z
-          .number()
-          .min(MIN_PAGE_SIZE)
-          .max(MAX_PAGE_SIZE)
-          .default(DEFAULT_PAGE_SIZE),
-        search: z.string().nullish(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const { search, page, pageSize } = input;
-
+    .input(meetingsInsertSchema)
+    .mutation(async ({ input, ctx }) => {
       try {
-        const data = await db
-          .select({
-            meetingCount: sql<number>`5`,
-            ...getTableColumns(meetings),
+        const [createdMeeting] = await db
+          .insert(meetings)
+          .values({
+            ...input,
+            userId: ctx.auth.user.id,
           })
-          .from(meetings)
-          .where(
-            and(
-              eq(meetings.userId, ctx.auth.user.id),
-              search ? ilike(meetings.name, `%${search}%`) : undefined
-            )
-          )
-          .orderBy(desc(meetings.createdAt), desc(meetings.id))
-          .limit(pageSize)
-          .offset((page - 1) * pageSize);
+          .returning();
 
-        const totalResult = await db
-          .select({ count: count() })
-          .from(meetings)
-          .where(
-            and(
-              eq(meetings.userId, ctx.auth.user.id),
-              search ? ilike(meetings.name, `%${search}%`) : undefined
-            )
-          );
 
-        const total = Number(totalResult[0]?.count ?? 0);
-        const totalPages = Math.ceil(total / pageSize);
-
-        return {
-          items: data,
-          total,
-          totalPages,
-          page,
-          pageSize,
-        };
+        return createdMeeting;
       } catch (err) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch meetings",
+          message: "Failed to create agent",
           cause: err,
         });
       }
     }),
+  getMany: protectedProcedure
+  .input(
+    z.object({
+      page: z.number().default(DEFAULT_PAGE),
+      pageSize: z
+        .number()
+        .min(MIN_PAGE_SIZE)
+        .max(MAX_PAGE_SIZE)
+        .default(DEFAULT_PAGE_SIZE),
+      search: z.string().nullish(),
+    })
+  )
+  .query(async ({ ctx, input }) => {
+    const { search, page, pageSize } = input;
+      console.log("Auth user:", ctx.auth.user);
+    try { 
+      const data = await db
+        .select({
+          ...getTableColumns(meetings),
+          agent: {
+            id: agents.id,
+            name: agents.name,
+          },
+        })
+        .from(meetings)
+        .innerJoin(agents, eq(meetings.agentId, agents.id)) // ✅ innerJoin instead of leftJoin
+        .where(
+          and(
+            eq(meetings.userId, ctx.auth.user.id),
+            search ? ilike(meetings.name, `%${search}%`) : undefined
+          )
+        )
+        .orderBy(desc(meetings.createdAt), desc(meetings.id))
+        .limit(pageSize)
+        .offset((page - 1) * pageSize);
+
+      const totalResult = await db
+        .select({ count: count() })
+        .from(meetings)
+        .where(
+          and(
+            eq(meetings.userId, ctx.auth.user.id),
+            search ? ilike(meetings.name, `%${search}%`) : undefined
+          )
+        );
+
+      const total = Number(totalResult[0]?.count ?? 0);
+      const totalPages = Math.ceil(total / pageSize);
+
+      return {
+        items: data,
+        total,
+        totalPages,
+        page,
+        pageSize,
+      };
+    } catch (err) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch meetings",
+        cause: err,
+      });
+    }
+  }),
 
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
