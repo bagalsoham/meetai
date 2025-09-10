@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, Plus } from 'lucide-react';
+import Image from 'next/image';
 
 interface EmptyStateProps {
   title: string;
@@ -7,6 +8,7 @@ interface EmptyStateProps {
   icon?: React.ReactNode;
   buttonText?: string;
   onButtonClick?: () => void;
+  image?: string;
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({
@@ -14,15 +16,32 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   description,
   icon,
   buttonText = "Get Started",
+  image = "/empty.svg",
   onButtonClick
 }) => {
   return (
     <div className="flex items-center justify-center py-16 px-4">
       <div className="text-center max-w-sm mx-auto">
-        {/* Purple folder icon container */}
-        <div className="mx-auto w-24 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center mb-6 relative shadow-lg">
-          <div className="absolute -top-2 left-4 w-8 h-4 bg-gradient-to-br from-purple-300 to-purple-500 rounded-t-md"></div>
-          {icon || <Users className="w-8 h-8 text-white" />}
+        {/* Image container */}
+        <div className="mb-6">
+          {image ? (
+            <Image
+              src={image}
+              alt={title}
+              width={200}
+              height={200}
+              className="mx-auto opacity-80"
+              priority={false}
+            />
+          ) : icon ? (
+            <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
+              {icon}
+            </div>
+          ) : (
+            <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
+              <Users className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            </div>
+          )}
         </div>
         
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
