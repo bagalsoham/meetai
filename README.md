@@ -261,15 +261,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Neon** for database services
 - **The open-source community** for amazing tools and libraries
 
-## 📞 Support
+## 📞 Contact & Support
 
-- **Documentation**: [docs.meet-ai.com](https://docs.meet-ai.com)
-- **Discord Community**: [Join our Discord](https://discord.gg/meet-ai)
-- **Email Support**: support@meet-ai.com
-- **Twitter**: [@MeetAI](https://twitter.com/meetai)
+**Developed by:** Soham Bagal
+
+[![GitHub](https://img.shields.io/badge/GitHub-bagalsoham-181717?style=for-the-badge&logo=github)](https://github.com/bagalsoham)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Soham%20Bagal-0077B5?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/soham-bagal-4343bb284/)
+[![Email](https://img.shields.io/badge/Email-bagalsoham1717%40gmail.com-D14836?style=for-the-badge&logo=gmail)](mailto:bagalsoham1717@gmail.com)
 
 ---
 
-**Built with ❤️ by the Meet AI Team**
+⭐ **Star this repository if you found it helpful!**
+
+**Project Status:** 🚀 Active Development
+
+Built with ❤️ by [Soham Bagal](https://github.com/bagalsoham)
 
 *Revolutionizing communication through intelligent AI integration*
